@@ -3,16 +3,18 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/suprsokr/vanillampq.svg)](https://pkg.go.dev/github.com/suprsokr/vanillampq)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Go library for working with World of Warcraft Vanilla (1.0.0-1.12.1) MPQ archives.
+**Pure-Go MPQ V1 archive library for World of Warcraft Vanilla (1.0.0-1.12.1).**
 
 ## Features
 
+- **100% Pure Go** - Zero dependencies, stdlib only
 - **Vanilla-Focused** - Specifically designed for vanilla WoW (1.0.0-1.12.1)
+- **V1 Format Only** - Rejects V2/V3/V4 (TBC/WotLK+) archives
 - **Streaming API** - Extract files without intermediate storage
 - **DBC Utilities** - Built-in helpers for DBC file extraction
 - **Path Normalization** - Automatic backslash conversion (vanilla convention)
-- **V1 Format Only** - Pure vanilla compatibility (no TBC/WotLK extensions)
-- **Pure Go** - Wraps [go-mpq](https://github.com/suprsokr/go-mpq) with vanilla-specific features
+- **Full Read/Write Support** - Create, read, modify archives
+- **22 Passing Tests** - Comprehensive test coverage with go-mpq and warcraft-rs test vectors
 
 ## Installation
 
@@ -205,11 +207,57 @@ for entry := range entries {
 
 For CLI usage, see [vanillampq-cli](https://github.com/suprsokr/vanillampq-cli).
 
+## Implementation
+
+This is a **native MPQ V1 implementation** written from scratch in pure Go with zero dependencies. The implementation was ported from:
+
+- [go-mpq](https://github.com/JoshVarga/go-mpq) - Reference implementation
+- [warcraft-rs](https://github.com/warlockbrawl/warcraft-rs) - Rust MPQ library
+
+### What's Implemented
+
+- MPQ V1 header parsing and writing
+- Encrypted hash tables (StormLib-compatible hashing)
+- Encrypted block tables
+- Zlib compression/decompression
+- PKWare DCL decompression
+- Sector-based and single-unit file storage
+- Sector CRC validation (Adler-32)
+- File encryption/decryption
+- Archive modification (add/remove/replace files)
+- Deletion markers and patch file markers
+- `(listfile)` and `(attributes)` support
+- Streaming extraction API
+
+### What's NOT Implemented
+
+- MPQ V2, V3, V4 formats (TBC, WotLK, Cataclysm+)
+- User data blocks
+- Strong digital signatures
+- Weak digital signatures
+- BZip2 compression (not used in vanilla)
+- Huffman encoding (not used in vanilla)
+- Sparse/differential compression
+
+## Testing
+
+```bash
+go test -v ./...
+```
+
+22 tests covering:
+- Hash functions (StormLib compatibility)
+- Encryption/decryption round-trips
+- Create, read, modify archives
+- Large file handling with sectors
+- Path normalization
+- CRC32 and Adler32 algorithms
+- Test vectors from go-mpq and warcraft-rs
+
 ## Related Projects
 
 - [vanillampq-cli](https://github.com/suprsokr/vanillampq-cli) - CLI tool
 - [vanilladbc](https://github.com/suprsokr/vanilladbc) - DBC file library
-- [go-mpq](https://github.com/suprsokr/go-mpq) - Underlying MPQ library
 - [WoWVanillaDBDefs](https://github.com/suprsokr/VanillaDBDefs) - Database definitions
 
 ## License
@@ -218,5 +266,8 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ## Credits
 
-Built on top of [go-mpq](https://github.com/suprsokr/go-mpq).
-Inspired by the WoW modding community.
+Implementation ported from:
+- [go-mpq](https://github.com/JoshVarga/go-mpq) by Josh Varga
+- [warcraft-rs](https://github.com/warlockbrawl/warcraft-rs) MPQ implementation
+
+Inspired by the WoW modding community and StormLib.
