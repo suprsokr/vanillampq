@@ -239,20 +239,10 @@ This is a **native MPQ V1 implementation** written from scratch in pure Go with 
 go test -v ./...
 ```
 
-22 tests covering:
-- Hash functions (StormLib compatibility)
-- Encryption/decryption round-trips
-- Create, read, modify archives
-- Large file handling with sectors
-- Path normalization
-- CRC32 and Adler32 algorithms
-- Test vectors from go-mpq and warcraft-rs
-
 ## Related Projects
 
 - [vanillampq-cli](https://github.com/suprsokr/vanillampq-cli) - CLI tool
 - [vanilladbc](https://github.com/suprsokr/vanilladbc) - DBC file library
-- [WoWVanillaDBDefs](https://github.com/suprsokr/VanillaDBDefs) - Database definitions
 
 ## License
 
