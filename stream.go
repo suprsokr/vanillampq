@@ -37,27 +37,19 @@ func StreamExtract(archivePath string) (<-chan FileEntry, <-chan error) {
 		}
 
 		for _, path := range files {
-			reader, err := archive.OpenFile(path)
-			if err != nil {
-				errors <- fmt.Errorf("failed to open %s: %w", path, err)
-				return
-			}
-
-			// Get file size (we'll read to determine it)
-			data, err := io.ReadAll(reader)
-			reader.Close()
+			data, err := archive.ReadFile(path)
 			if err != nil {
 				errors <- fmt.Errorf("failed to read %s: %w", path, err)
 				return
 			}
 
-			// Create a new reader from the data
-			newReader := &bytesReadCloser{data: data}
+			// Create a reader from the data
+			reader := &bytesReadCloser{data: data}
 
 			entries <- FileEntry{
 				Path:   path,
 				Size:   int64(len(data)),
-				Reader: newReader,
+				Reader: reader,
 			}
 		}
 	}()
@@ -88,25 +80,18 @@ func StreamExtractDBCs(archivePath string) (<-chan FileEntry, <-chan error) {
 		}
 
 		for _, path := range dbcFiles {
-			reader, err := archive.OpenFile(path)
-			if err != nil {
-				errors <- fmt.Errorf("failed to open %s: %w", path, err)
-				return
-			}
-
-			data, err := io.ReadAll(reader)
-			reader.Close()
+			data, err := archive.ReadFile(path)
 			if err != nil {
 				errors <- fmt.Errorf("failed to read %s: %w", path, err)
 				return
 			}
 
-			newReader := &bytesReadCloser{data: data}
+			reader := &bytesReadCloser{data: data}
 
 			entries <- FileEntry{
 				Path:   path,
 				Size:   int64(len(data)),
-				Reader: newReader,
+				Reader: reader,
 			}
 		}
 	}()

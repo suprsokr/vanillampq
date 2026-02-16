@@ -2,7 +2,7 @@ package vanillampq
 
 import (
 	"fmt"
-	"io"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -83,14 +83,30 @@ func (a *Archive) HasFile(path string) bool {
 	return a.mpq.HasFile(path)
 }
 
-// OpenFile opens a file within the archive for reading
-func (a *Archive) OpenFile(path string) (io.ReadCloser, error) {
-	return a.mpq.OpenFile(path)
+// ExtractFile extracts a file from the archive to a local path
+func (a *Archive) ExtractFile(mpqPath, destPath string) error {
+	mpqPath = NormalizePath(mpqPath)
+	return a.mpq.ExtractFile(mpqPath, destPath)
 }
 
-// ReadFile reads an entire file from the archive
-func (a *Archive) ReadFile(path string) ([]byte, error) {
-	return a.mpq.ReadFile(path)
+// ReadFile reads an entire file from the archive into memory
+func (a *Archive) ReadFile(mpqPath string) ([]byte, error) {
+	mpqPath = NormalizePath(mpqPath)
+	
+	// Extract to temp file, read, then delete
+	tmpFile, err := os.CreateTemp("", "vanillampq_*.tmp")
+	if err != nil {
+		return nil, fmt.Errorf("failed to create temp file: %w", err)
+	}
+	tmpPath := tmpFile.Name()
+	tmpFile.Close()
+	defer os.Remove(tmpPath)
+	
+	if err := a.mpq.ExtractFile(mpqPath, tmpPath); err != nil {
+		return nil, err
+	}
+	
+	return os.ReadFile(tmpPath)
 }
 
 // AddFile adds a file to the archive from a local path
@@ -100,16 +116,25 @@ func (a *Archive) AddFile(localPath, mpqPath string) error {
 	return a.mpq.AddFile(localPath, mpqPath)
 }
 
-// AddFileFromReader adds a file to the archive from a reader
-func (a *Archive) AddFileFromReader(reader io.Reader, mpqPath string, size int64) error {
-	mpqPath = NormalizePath(mpqPath)
-	return a.mpq.AddFileFromReader(reader, mpqPath, size)
-}
-
 // AddFileFromBytes adds a file to the archive from a byte slice
 func (a *Archive) AddFileFromBytes(data []byte, mpqPath string) error {
 	mpqPath = NormalizePath(mpqPath)
-	return a.mpq.AddFileFromBytes(data, mpqPath)
+	
+	// Write to temp file, add, then delete
+	tmpFile, err := os.CreateTemp("", "vanillampq_*.tmp")
+	if err != nil {
+		return fmt.Errorf("failed to create temp file: %w", err)
+	}
+	tmpPath := tmpFile.Name()
+	defer os.Remove(tmpPath)
+	
+	if _, err := tmpFile.Write(data); err != nil {
+		tmpFile.Close()
+		return fmt.Errorf("failed to write temp file: %w", err)
+	}
+	tmpFile.Close()
+	
+	return a.mpq.AddFile(tmpPath, mpqPath)
 }
 
 // RemoveFile removes a file from the archive
