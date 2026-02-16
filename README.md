@@ -8,13 +8,10 @@
 ## Features
 
 - **100% Pure Go** - Zero dependencies, stdlib only
-- **Vanilla-Focused** - Specifically designed for vanilla WoW (1.0.0-1.12.1)
-- **V1 Format Only** - Rejects V2/V3/V4 (TBC/WotLK+) archives
+- **Vanilla-Focused** - Specifically designed for vanilla WoW (1.0.0-1.12.1) v1 MPQ format
 - **Streaming API** - Extract files without intermediate storage
-- **DBC Utilities** - Built-in helpers for DBC file extraction
 - **Path Normalization** - Automatic backslash conversion (vanilla convention)
 - **Full Read/Write Support** - Create, read, modify archives
-- **22 Passing Tests** - Comprehensive test coverage with go-mpq and warcraft-rs test vectors
 
 ## Installation
 
@@ -142,17 +139,21 @@ archive.RemoveFile("DBFilesClient\\OldFile.dbc")
 - `Create(path string, maxFiles int) (*Archive, error)` - Create new archive
 - `OpenForModify(path string) (*Archive, error)` - Open for modification
 - `ExtractAll(archivePath, outputDir string) error` - Extract all files
-- `ExtractDBCs(archivePath, outputDir string) error` - Extract DBC files only
+- `ExtractByExtension(archivePath, outputDir, ext string, preservePath bool) error` - Extract by extension
+- `ExtractWithFilter(archivePath, outputDir string, filter FileFilter, preservePath bool) error` - Extract with custom filter
 
 ### Streaming Functions
 
 - `StreamExtract(archivePath string) (<-chan FileEntry, <-chan error)` - Stream all files
-- `StreamExtractDBCs(archivePath string) (<-chan FileEntry, <-chan error)` - Stream DBC files
+- `StreamExtractByExtension(archivePath, ext string) (<-chan FileEntry, <-chan error)` - Stream files by extension
+- `StreamExtractWithFilter(archivePath string, filter FileFilter) (<-chan FileEntry, <-chan error)` - Stream with custom filter
 
 ### Archive Methods
 
 - `ListFiles() ([]string, error)` - List all file paths
-- `GetDBCFiles() ([]string, error)` - List only DBC file paths
+- `GetFilesByExtension(ext string) ([]string, error)` - List files by extension (e.g., ".dbc", ".lua")
+- `GetFilesByPattern(pattern string) ([]string, error)` - List files matching pattern
+- `GetFilesWithFilter(filter FileFilter) ([]string, error)` - List files with custom filter
 - `HasFile(path string) bool` - Check if file exists
 - `ReadFile(path string) ([]byte, error)` - Read file into memory
 - `ExtractFile(mpqPath, destPath string) error` - Extract single file
