@@ -177,22 +177,6 @@ archive.RemoveFile("DBFilesClient\\OldFile.dbc")
 - `IsVanillaArchive(name string) bool` - Check if known vanilla archive
 - `GetArchiveType(name string) VanillaArchiveType` - Get archive type
 
-## Vanilla Archive Types
-
-The library recognizes these standard vanilla MPQ archives:
-
-**Base Archives:**
-- `base.MPQ`, `dbc.MPQ`, `fonts.MPQ`, `interface.MPQ`
-- `misc.MPQ`, `model.MPQ`, `sound.MPQ`, `speech.MPQ`
-- `terrain.MPQ`, `texture.MPQ`, `wmo.MPQ`
-
-**Patch Archives:**
-- `patch.MPQ`, `patch-2.MPQ`, `patch-3.MPQ`
-
-**Locale Archives:**
-- `locale-enUS.MPQ`, `locale-deDE.MPQ`, `locale-frFR.MPQ`
-- And other locale variants
-
 ## Pipeline Example
 
 Combine with [vanilladbc](https://github.com/suprsokr/vanilladbc) for complete workflow:
