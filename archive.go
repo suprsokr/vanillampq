@@ -400,7 +400,7 @@ func (a *Archive) IsPatchFile(mpqPath string) bool {
 // FileFilter is a function that filters files by name
 type FileFilter func(path string) bool
 
-// GetFilesByExtension returns all files with the given extension (e.g., ".dbc")
+// GetFilesByExtension returns all files with the given extension (e.g., ".dbc", ".lua")
 func (a *Archive) GetFilesByExtension(ext string) ([]string, error) {
 	return a.GetFilesWithFilter(func(path string) bool {
 		return strings.HasSuffix(strings.ToLower(path), strings.ToLower(ext))
@@ -428,12 +428,6 @@ func (a *Archive) GetFilesWithFilter(filter FileFilter) ([]string, error) {
 		}
 	}
 	return filtered, nil
-}
-
-// GetDBCFiles returns all .dbc files in the archive.
-// Deprecated: Use GetFilesByExtension(".dbc") instead.
-func (a *Archive) GetDBCFiles() ([]string, error) {
-	return a.GetFilesByExtension(".dbc")
 }
 
 // Close closes the archive. For write/modify mode, this writes the archive to disk.

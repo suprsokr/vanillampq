@@ -95,18 +95,12 @@ func StreamExtractWithFilter(archivePath string, filter FileFilter) (<-chan File
 	return entries, errors
 }
 
-// StreamExtractByExtension streams files with a specific extension
+// StreamExtractByExtension streams files with a specific extension (e.g., ".dbc", ".lua")
 func StreamExtractByExtension(archivePath, ext string) (<-chan FileEntry, <-chan error) {
 	ext = strings.ToLower(ext)
 	return StreamExtractWithFilter(archivePath, func(path string) bool {
 		return strings.HasSuffix(strings.ToLower(path), ext)
 	})
-}
-
-// StreamExtractDBCs streams only DBC files from an archive
-// Deprecated: Use StreamExtractByExtension(archivePath, ".dbc") instead.
-func StreamExtractDBCs(archivePath string) (<-chan FileEntry, <-chan error) {
-	return StreamExtractByExtension(archivePath, ".dbc")
 }
 
 // ExtractAll extracts all files from an archive to a directory
@@ -181,18 +175,12 @@ func ExtractWithFilter(archivePath, outputDir string, filter FileFilter, preserv
 	return nil
 }
 
-// ExtractByExtension extracts all files with a specific extension
+// ExtractByExtension extracts all files with a specific extension (e.g., ".dbc", ".lua")
 func ExtractByExtension(archivePath, outputDir, ext string, preservePath bool) error {
 	ext = strings.ToLower(ext)
 	return ExtractWithFilter(archivePath, outputDir, func(path string) bool {
 		return strings.HasSuffix(strings.ToLower(path), ext)
 	}, preservePath)
-}
-
-// ExtractDBCs extracts all DBC files to a directory
-// Deprecated: Use ExtractByExtension(archivePath, outputDir, ".dbc", false) instead.
-func ExtractDBCs(archivePath, outputDir string) error {
-	return ExtractByExtension(archivePath, outputDir, ".dbc", false)
 }
 
 type bytesReadCloser struct {

@@ -538,8 +538,8 @@ func TestAddFileFromBytes(t *testing.T) {
 	}
 }
 
-func TestGetDBCFiles(t *testing.T) {
-	tmpDir, _ := os.MkdirTemp("", "vanillampq_dbc_test_")
+func TestGetFilesByExtension(t *testing.T) {
+	tmpDir, _ := os.MkdirTemp("", "vanillampq_ext_test_")
 	defer os.RemoveAll(tmpDir)
 
 	mpqPath := filepath.Join(tmpDir, "test.mpq")
@@ -547,14 +547,25 @@ func TestGetDBCFiles(t *testing.T) {
 	archive.AddFileFromBytes([]byte("spell"), "DBFilesClient\\Spell.dbc")
 	archive.AddFileFromBytes([]byte("item"), "DBFilesClient\\Item.dbc")
 	archive.AddFileFromBytes([]byte("lua"), "Interface\\FrameXML\\Test.lua")
+	archive.AddFileFromBytes([]byte("xml"), "Interface\\FrameXML\\Test.xml")
 	archive.Close()
 
 	readArchive, _ := Open(mpqPath)
 	defer readArchive.Close()
 
-	dbcFiles, _ := readArchive.GetDBCFiles()
+	dbcFiles, _ := readArchive.GetFilesByExtension(".dbc")
 	if len(dbcFiles) != 2 {
 		t.Errorf("expected 2 DBC files, got %d: %v", len(dbcFiles), dbcFiles)
+	}
+
+	luaFiles, _ := readArchive.GetFilesByExtension(".lua")
+	if len(luaFiles) != 1 {
+		t.Errorf("expected 1 LUA file, got %d: %v", len(luaFiles), luaFiles)
+	}
+
+	xmlFiles, _ := readArchive.GetFilesByExtension(".xml")
+	if len(xmlFiles) != 1 {
+		t.Errorf("expected 1 XML file, got %d: %v", len(xmlFiles), xmlFiles)
 	}
 }
 
