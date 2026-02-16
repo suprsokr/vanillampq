@@ -397,19 +397,43 @@ func (a *Archive) IsPatchFile(mpqPath string) bool {
 	return block.Flags&filePatchFile != 0
 }
 
-// GetDBCFiles returns all .dbc files in the archive.
-func (a *Archive) GetDBCFiles() ([]string, error) {
+// FileFilter is a function that filters files by name
+type FileFilter func(path string) bool
+
+// GetFilesByExtension returns all files with the given extension (e.g., ".dbc")
+func (a *Archive) GetFilesByExtension(ext string) ([]string, error) {
+	return a.GetFilesWithFilter(func(path string) bool {
+		return strings.HasSuffix(strings.ToLower(path), strings.ToLower(ext))
+	})
+}
+
+// GetFilesByPattern returns all files matching a pattern (case-insensitive)
+func (a *Archive) GetFilesByPattern(pattern string) ([]string, error) {
+	pattern = strings.ToLower(pattern)
+	return a.GetFilesWithFilter(func(path string) bool {
+		return strings.Contains(strings.ToLower(path), pattern)
+	})
+}
+
+// GetFilesWithFilter returns all files matching the given filter function
+func (a *Archive) GetFilesWithFilter(filter FileFilter) ([]string, error) {
 	files, err := a.ListFiles()
 	if err != nil {
 		return nil, err
 	}
-	var dbcFiles []string
+	var filtered []string
 	for _, f := range files {
-		if strings.HasSuffix(strings.ToLower(f), ".dbc") {
-			dbcFiles = append(dbcFiles, f)
+		if filter(f) {
+			filtered = append(filtered, f)
 		}
 	}
-	return dbcFiles, nil
+	return filtered, nil
+}
+
+// GetDBCFiles returns all .dbc files in the archive.
+// Deprecated: Use GetFilesByExtension(".dbc") instead.
+func (a *Archive) GetDBCFiles() ([]string, error) {
+	return a.GetFilesByExtension(".dbc")
 }
 
 // Close closes the archive. For write/modify mode, this writes the archive to disk.

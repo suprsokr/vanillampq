@@ -55,8 +55,8 @@ func StreamExtract(archivePath string) (<-chan FileEntry, <-chan error) {
 	return entries, errors
 }
 
-// StreamExtractDBCs streams only DBC files from an archive
-func StreamExtractDBCs(archivePath string) (<-chan FileEntry, <-chan error) {
+// StreamExtractWithFilter streams files matching a filter function from an archive
+func StreamExtractWithFilter(archivePath string, filter FileFilter) (<-chan FileEntry, <-chan error) {
 	entries := make(chan FileEntry)
 	errors := make(chan error, 1)
 	go func() {
@@ -77,7 +77,7 @@ func StreamExtractDBCs(archivePath string) (<-chan FileEntry, <-chan error) {
 		}
 
 		for _, path := range files {
-			if !strings.HasSuffix(strings.ToLower(path), ".dbc") {
+			if filter != nil && !filter(path) {
 				continue
 			}
 			data, err := archive.ReadFile(path)
@@ -93,6 +93,20 @@ func StreamExtractDBCs(archivePath string) (<-chan FileEntry, <-chan error) {
 		}
 	}()
 	return entries, errors
+}
+
+// StreamExtractByExtension streams files with a specific extension
+func StreamExtractByExtension(archivePath, ext string) (<-chan FileEntry, <-chan error) {
+	ext = strings.ToLower(ext)
+	return StreamExtractWithFilter(archivePath, func(path string) bool {
+		return strings.HasSuffix(strings.ToLower(path), ext)
+	})
+}
+
+// StreamExtractDBCs streams only DBC files from an archive
+// Deprecated: Use StreamExtractByExtension(archivePath, ".dbc") instead.
+func StreamExtractDBCs(archivePath string) (<-chan FileEntry, <-chan error) {
+	return StreamExtractByExtension(archivePath, ".dbc")
 }
 
 // ExtractAll extracts all files from an archive to a directory
@@ -124,15 +138,15 @@ func ExtractAll(archivePath, outputDir string) error {
 	return nil
 }
 
-// ExtractDBCs extracts all DBC files to a directory
-func ExtractDBCs(archivePath, outputDir string) error {
+// ExtractWithFilter extracts files matching a filter to a directory
+func ExtractWithFilter(archivePath, outputDir string, filter FileFilter, preservePath bool) error {
 	archive, err := Open(archivePath)
 	if err != nil {
 		return err
 	}
 	defer archive.Close()
 
-	dbcFiles, err := archive.GetDBCFiles()
+	files, err := archive.ListFiles()
 	if err != nil {
 		return err
 	}
@@ -141,8 +155,21 @@ func ExtractDBCs(archivePath, outputDir string) error {
 		return err
 	}
 
-	for _, mpqPath := range dbcFiles {
-		fsPath := filepath.Join(outputDir, filepath.Base(mpqPath))
+	for _, mpqPath := range files {
+		if filter != nil && !filter(mpqPath) {
+			continue
+		}
+
+		var fsPath string
+		if preservePath {
+			fsPath = filepath.Join(outputDir, filepath.FromSlash(strings.ReplaceAll(mpqPath, "\\", "/")))
+			if err := os.MkdirAll(filepath.Dir(fsPath), 0755); err != nil {
+				return fmt.Errorf("create dir for %s: %w", mpqPath, err)
+			}
+		} else {
+			fsPath = filepath.Join(outputDir, filepath.Base(mpqPath))
+		}
+
 		data, err := archive.ReadFile(mpqPath)
 		if err != nil {
 			return fmt.Errorf("read %s: %w", mpqPath, err)
@@ -152,6 +179,20 @@ func ExtractDBCs(archivePath, outputDir string) error {
 		}
 	}
 	return nil
+}
+
+// ExtractByExtension extracts all files with a specific extension
+func ExtractByExtension(archivePath, outputDir, ext string, preservePath bool) error {
+	ext = strings.ToLower(ext)
+	return ExtractWithFilter(archivePath, outputDir, func(path string) bool {
+		return strings.HasSuffix(strings.ToLower(path), ext)
+	}, preservePath)
+}
+
+// ExtractDBCs extracts all DBC files to a directory
+// Deprecated: Use ExtractByExtension(archivePath, outputDir, ".dbc", false) instead.
+func ExtractDBCs(archivePath, outputDir string) error {
+	return ExtractByExtension(archivePath, outputDir, ".dbc", false)
 }
 
 type bytesReadCloser struct {
