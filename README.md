@@ -83,16 +83,25 @@ if err := <-errors; err != nil {
 }
 ```
 
-### Streaming Only DBC Files
+### Streaming Files by Extension
 
 ```go
-entries, errors := vanillampq.StreamExtractDBCs("dbc.MPQ")
+// Stream only DBC files
+entries, errors := vanillampq.StreamExtractByExtension("dbc.MPQ", ".dbc")
 
 for entry := range entries {
-    // Only DBC files are streamed
     fmt.Printf("DBC: %s\n", entry.Path)
     // Process...
 }
+
+// Stream LUA files
+luaEntries, luaErrors := vanillampq.StreamExtractByExtension("interface.MPQ", ".lua")
+
+// Stream with custom filter
+filter := func(path string) bool {
+    return strings.HasPrefix(strings.ToLower(path), "dbfilesclient\\")
+}
+dbcEntries, dbcErrors := vanillampq.StreamExtractWithFilter("dbc.MPQ", filter)
 ```
 
 ### Creating Archives
