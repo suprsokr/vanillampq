@@ -520,6 +520,9 @@ func (a *Archive) decryptAndDecompressSingleUnit(data []byte, block *blockTableE
 }
 
 func (a *Archive) decryptAndDecompressSectors(data []byte, block *blockTableEntry, key uint32) ([]byte, error) {
+	if block.FileSize == 0 {
+		return []byte{}, nil
+	}
 	numSectors := (block.FileSize + a.sectorSize - 1) / a.sectorSize
 	offsetTableSize := (numSectors + 1) * 4
 	if uint32(len(data)) < offsetTableSize {
@@ -563,6 +566,9 @@ func (a *Archive) decryptAndDecompressSectors(data []byte, block *blockTableEntr
 }
 
 func (a *Archive) decompressSectors(data []byte, block *blockTableEntry) ([]byte, error) {
+	if block.FileSize == 0 {
+		return []byte{}, nil
+	}
 	numSectors := (block.FileSize + a.sectorSize - 1) / a.sectorSize
 	offsetTableSize := (numSectors + 1) * 4
 	if uint32(len(data)) < offsetTableSize {

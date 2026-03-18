@@ -149,24 +149,30 @@ func ExtractWithFilter(archivePath, outputDir string, filter FileFilter, preserv
 		return err
 	}
 
+	var firstErr error
 	for _, mpqPath := range files {
 		if filter != nil && !filter(mpqPath) {
 			continue
 		}
 
+		normalized := strings.ReplaceAll(mpqPath, "\\", "/")
 		var fsPath string
 		if preservePath {
-			fsPath = filepath.Join(outputDir, filepath.FromSlash(strings.ReplaceAll(mpqPath, "\\", "/")))
+			fsPath = filepath.Join(outputDir, filepath.FromSlash(normalized))
 			if err := os.MkdirAll(filepath.Dir(fsPath), 0755); err != nil {
 				return fmt.Errorf("create dir for %s: %w", mpqPath, err)
 			}
 		} else {
-			fsPath = filepath.Join(outputDir, filepath.Base(mpqPath))
+			fsPath = filepath.Join(outputDir, filepath.Base(normalized))
 		}
 
 		data, err := archive.ReadFile(mpqPath)
 		if err != nil {
-			return fmt.Errorf("read %s: %w", mpqPath, err)
+			if firstErr == nil {
+				firstErr = fmt.Errorf("read %s: %w", mpqPath, err)
+			}
+			fmt.Fprintf(os.Stderr, "Warning: skipping %s: %v\n", mpqPath, err)
+			continue
 		}
 		if err := os.WriteFile(fsPath, data, 0644); err != nil {
 			return fmt.Errorf("write %s: %w", fsPath, err)
